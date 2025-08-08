@@ -5,6 +5,7 @@ import theme from './theme';
 import LoginScreen from './screens/LoginScreen';
 import AdminDashboard from './screens/admin/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminLayout from './components/layout/AdminLayout';
 import AddNewAsset from './screens/assets/AddNewAsset';
 import AssetManagement from './screens/assets/AssetManagement';
 import AssetHistory from './screens/assets/AssetHistory';
@@ -26,11 +27,23 @@ import Consumables from './components/inventory/Consumables';
 import InventoryAlerts from './components/inventory/InventoryAlerts';
 import InventoryHistory from './components/inventory/InventoryHistory';
 
+// Import reports components
+import GenerateReports from './components/reports/GenerateReports';
+import AssetVerification from './components/reports/AssetVerification';
+import AuditLogs from './components/reports/AuditLogs';
+import ExportData from './components/reports/ExportData';
+
 // Import procurement components
 import RaiseRequest from './components/procurement/RaiseRequest';
 import ViewRequests from './components/procurement/ViewRequests';
 import ManageVendors from './components/procurement/ManageVendors';
 import ApprovedPurchases from './components/procurement/ApprovedPurchases';
+
+// Import settings components
+import Profile from './components/settings/Profile';
+import SystemSettings from './components/settings/SystemSettings';
+import BackupRestore from './components/settings/BackupRestore';
+import NotificationSettings from './components/settings/NotificationSettings';
 
 function App() {
   return (
@@ -40,184 +53,48 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginScreen />} />
           <Route
-            path="/admin/dashboard"
+            path="/admin/*"
             element={
               <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/assets/new"
-            element={
-              <ProtectedRoute>
-                <AddNewAsset />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/assets/manage"
-            element={
-              <ProtectedRoute>
-                <AssetManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/assets/history"
-            element={
-              <ProtectedRoute>
-                <AssetHistoryList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/assets/history/:id"
-            element={
-              <ProtectedRoute>
-                <AssetHistory />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/assets/categories"
-            element={
-              <ProtectedRoute>
-                <AssetCategories />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/assets/disposal"
-            element={
-              <ProtectedRoute>
-                <AssetDisposal />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/departments/assign"
-            element={
-              <ProtectedRoute>
-                <AssignToDepartment />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/departments/view"
-            element={
-              <ProtectedRoute>
-                <ViewByDepartment />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/locations/manage"
-            element={
-              <ProtectedRoute>
-                <ManageLocations />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/maintenance/schedule"
-            element={
-              <ProtectedRoute>
-                <ScheduleMaintenance />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/maintenance/logs"
-            element={
-              <ProtectedRoute>
-                <MaintenanceLogs />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/maintenance/requests"
-            element={
-              <ProtectedRoute>
-                <ServiceRequests />
-              </ProtectedRoute>
-            }
-          />
-          {/* Inventory Routes */}
-          <Route
-            path="/admin/inventory/add"
-            element={
-              <ProtectedRoute>
-                <AddInventoryItem />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/inventory/stock"
-            element={
-              <ProtectedRoute>
-                <StockLevels />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/inventory/consumables"
-            element={
-              <ProtectedRoute>
-                <Consumables />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/inventory/alerts"
-            element={
-              <ProtectedRoute>
-                <InventoryAlerts />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/inventory/history"
-            element={
-              <ProtectedRoute>
-                <InventoryHistory />
+                <AdminLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="assets/new" element={<AddNewAsset />} />
+                    <Route path="assets/manage" element={<AssetManagement />} />
+                    <Route path="assets/history" element={<AssetHistoryList />} />
+                    <Route path="assets/history/:id" element={<AssetHistory />} />
+                    <Route path="assets/categories" element={<AssetCategories />} />
+                    <Route path="assets/disposal" element={<AssetDisposal />} />
+                    <Route path="departments/assign" element={<AssignToDepartment />} />
+                    <Route path="departments/view" element={<ViewByDepartment />} />
+                    <Route path="locations/manage" element={<ManageLocations />} />
+                    <Route path="maintenance/schedule" element={<ScheduleMaintenance />} />
+                    <Route path="maintenance/logs" element={<MaintenanceLogs />} />
+                    <Route path="maintenance/requests" element={<ServiceRequests />} />
+                    <Route path="inventory/add" element={<AddInventoryItem />} />
+                    <Route path="inventory/stock" element={<StockLevels />} />
+                    <Route path="inventory/consumables" element={<Consumables />} />
+                    <Route path="inventory/alerts" element={<InventoryAlerts />} />
+                    <Route path="inventory/history" element={<InventoryHistory />} />
+                    <Route path="reports/generate" element={<GenerateReports />} />
+                    <Route path="reports/verify" element={<AssetVerification />} />
+                    <Route path="reports/audit" element={<AuditLogs />} />
+                    <Route path="reports/export" element={<ExportData />} />
+                    <Route path="procurement/request" element={<RaiseRequest />} />
+                    <Route path="procurement/view" element={<ViewRequests />} />
+                    <Route path="procurement/vendors" element={<ManageVendors />} />
+                    <Route path="procurement/approved" element={<ApprovedPurchases />} />
+                    <Route path="settings/profile" element={<Profile />} />
+                    <Route path="settings/system" element={<SystemSettings />} />
+                    <Route path="settings/backup" element={<BackupRestore />} />
+                    <Route path="settings/notifications" element={<NotificationSettings />} />
+                  </Routes>
+                </AdminLayout>
               </ProtectedRoute>
             }
           />
 
-          {/* Procurement Routes */}
-          <Route
-            path="/admin/procurement/request"
-            element={
-              <ProtectedRoute>
-                <RaiseRequest />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/procurement/view"
-            element={
-              <ProtectedRoute>
-                <ViewRequests />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/procurement/vendors"
-            element={
-              <ProtectedRoute>
-                <ManageVendors />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/procurement/approved"
-            element={
-              <ProtectedRoute>
-                <ApprovedPurchases />
-              </ProtectedRoute>
-            }
-          />
+
           {/* Redirect any unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

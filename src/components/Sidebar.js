@@ -36,7 +36,13 @@ import {
   ShoppingCart as ShoppingCartIcon,
   AddCircleOutline as AddCircleOutlineIcon,
   CheckCircleOutline as CheckCircleOutlineIcon,
-  NotificationsActive as NotificationsActiveIcon
+  NotificationsActive as NotificationsActiveIcon,
+  Assessment as AssessmentIcon,
+  FactCheck as FactCheckIcon,
+  Visibility as VisibilityIcon,
+  FileDownload as FileDownloadIcon,
+  SaveAlt,
+  Notifications as NotificationsIcon
 } from '@mui/icons-material';
 
 const menuItems = [
@@ -73,6 +79,32 @@ const menuItems = [
         title: 'History',
         icon: <HistoryIcon />,
         path: '/admin/inventory/history'
+      }
+    ]
+  },
+  {
+    title: 'Audit & Reports',
+    icon: <AssessmentIcon />,
+    submenu: [
+      {
+        title: 'Generate Reports',
+        icon: <AssessmentIcon />,
+        path: '/admin/reports/generate'
+      },
+      {
+        title: 'Asset Verification',
+        icon: <FactCheckIcon />,
+        path: '/admin/reports/verify'
+      },
+      {
+        title: 'Audit Logs',
+        icon: <VisibilityIcon />,
+        path: '/admin/reports/audit'
+      },
+      {
+        title: 'Export Data',
+        icon: <FileDownloadIcon />,
+        path: '/admin/reports/export'
       }
     ]
   },
@@ -230,6 +262,16 @@ const menuItems = [
         title: 'System Settings',
         icon: <SettingsIcon />,
         path: '/admin/settings/system'
+      },
+      {
+        title: 'Backup & Restore',
+        icon: <SaveAlt />,
+        path: '/admin/settings/backup'
+      },
+      {
+        title: 'Notifications',
+        icon: <NotificationsIcon />,
+        path: '/admin/settings/notifications'
       }
     ]
   }

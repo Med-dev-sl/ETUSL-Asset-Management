@@ -17,6 +17,49 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    function hasValidFields(requiredFields) {
+      return request.resource.data.keys().hasAll(requiredFields);
+    }
+
+    // System settings
+    match /systemSettings/{document} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow update: if request.auth.uid == userId || isAdmin();
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Backup records
+    match /backups/{backupId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Settings collections
+    match /settings/{document} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+
+      match /notifications/{document} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin();
+      }
+    }
+
+    // Audit logs - append only, no modifications
+    match /auditLogs/{logId} {
+      allow create: if isAuthenticated() && 
+        hasValidFields(['action', 'resource', 'timestamp', 'userId', 'userEmail']);
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
     function isValidInventoryItem() {
       let item = request.resource.data;
       return item.name is string && item.name.size() > 0 &&
@@ -59,6 +102,22 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow create: if isAdmin() && isValidHistoryRecord();
       // History records should never be updated or deleted
+      allow update, delete: if false;
+    }
+
+    // Audit Logs Rules
+    match /auditLogs/{logId} {
+      allow read: if isAuthenticated() && isAdmin();
+      allow create: if isAuthenticated();
+      // Audit logs should never be updated or deleted
+      allow update, delete: if false;
+    }
+
+    // Asset Verification Rules
+    match /assetVerifications/{verificationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      // Verification records should never be updated or deleted
       allow update, delete: if false;
     }
 
