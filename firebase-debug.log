@@ -1,0 +1,14 @@
+[debug] [2025-08-08T08:01:42.114Z] ----------------------------------------------------------------------
+[debug] [2025-08-08T08:01:42.123Z] Command:       C:\nvm4w\nodejs\node.exe C:\nvm4w\nodejs\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules
+[debug] [2025-08-08T08:01:42.124Z] CLI Version:   14.11.1
+[debug] [2025-08-08T08:01:42.124Z] Platform:      win32
+[debug] [2025-08-08T08:01:42.125Z] Node Version:  v20.0.0
+[debug] [2025-08-08T08:01:42.126Z] Time:          Fri Aug 08 2025 08:01:42 GMT+0000 (Greenwich Mean Time)
+[debug] [2025-08-08T08:01:42.126Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-08-08T08:01:47.323Z] Error: Timed out.
+    at Timeout._onTimeout (C:\Users\moham\AppData\Local\nvm\v20.0.0\node_modules\firebase-tools\lib\utils.js:272:49)
+    at listOnTimeout (node:internal/timers:573:17)
+    at process.processTimers (node:internal/timers:514:7)
+[error] 
+[error] Error: An unexpected error has occurred.

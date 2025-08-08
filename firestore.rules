@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions for future use
+    function isValidUser(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId));
+    }
+
+    // Asset Collection Rules
+    match /assets/{assetId} {
+      allow read, write: if true;
+      
+      match /history/{historyId} {
+        allow read, write: if true;
+      }
+    }
+    
+    // Asset Categories Collection Rules
+    match /assetCategories/{categoryId} {
+      allow read, write: if true;
+    }
+    
+    // Departments Collection Rules
+    match /departments/{departmentId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Locations Collection Rules
+    match /locations/{locationId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Asset Department Assignments Collection Rules
+    match /assetDepartments/{assignmentId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Users Collection Rules
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if !exists(/databases/$(database)/documents/users/admin);
+      allow update, delete: if true;
+    }
+
+    // Maintenance Collection Rules
+    match /maintenance/{maintenanceId} {
+      allow read, write: if true;
+    }
+
+    // Service Requests Collection Rules
+    match /serviceRequests/{requestId} {
+      allow read, write: if true;
+    }
+
+    // Default rule for all other collections
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
