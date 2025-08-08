@@ -23,7 +23,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { Edit as EditIcon, Visibility as ViewIcon } from '@mui/icons-material';
-import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { format } from 'date-fns';
 
@@ -59,13 +59,14 @@ const MaintenanceLogs = () => {
       setLoading(true);
       const q = query(collection(db, 'maintenance'), orderBy('scheduledDate', 'desc'));
       const snapshot = await getDocs(q);
-      const loadedLogs = await Promise.all(snapshot.docs.map(async doc => {
-        const data = doc.data();
+      const loadedLogs = await Promise.all(snapshot.docs.map(async maintenanceDoc => {
+        const data = maintenanceDoc.data();
         // Get asset details
-        const assetDoc = await getDocs(doc(db, 'assets', data.assetId));
-        const assetData = assetDoc.data();
+        const assetRef = doc(db, 'assets', data.assetId);
+        const assetDoc = await getDoc(assetRef);
+        const assetData = assetDoc.exists() ? assetDoc.data() : null;
         return {
-          id: doc.id,
+          id: maintenanceDoc.id,
           ...data,
           asset: assetData ? {
             name: assetData.name,
@@ -86,11 +87,29 @@ const MaintenanceLogs = () => {
 
     try {
       setLoading(true);
+
+      // Check user role
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !user.id) {
+        throw new Error('You must be logged in to update maintenance logs');
+      }
+
+      // Get user data from Firestore
+      const userDoc = await getDoc(doc(db, 'users', user.id));
+      if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+        throw new Error('Only administrators can update maintenance logs');
+      }
+
       const maintenanceRef = doc(db, 'maintenance', selectedLog.id);
       await updateDoc(maintenanceRef, {
         status: editData.status,
         notes: editData.notes,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
+        updatedBy: {
+          id: user.id,
+          email: userDoc.data().email,
+          timestamp: new Date()
+        }
       });
       
       showNotification('Maintenance log updated successfully', 'success');

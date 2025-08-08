@@ -19,6 +19,19 @@ import ScheduleMaintenance from './screens/maintenance/ScheduleMaintenance';
 import MaintenanceLogs from './screens/maintenance/MaintenanceLogs';
 import ServiceRequests from './screens/maintenance/ServiceRequests';
 
+// Import inventory components
+import AddInventoryItem from './components/inventory/AddInventoryItem';
+import StockLevels from './components/inventory/StockLevels';
+import Consumables from './components/inventory/Consumables';
+import InventoryAlerts from './components/inventory/InventoryAlerts';
+import InventoryHistory from './components/inventory/InventoryHistory';
+
+// Import procurement components
+import RaiseRequest from './components/procurement/RaiseRequest';
+import ViewRequests from './components/procurement/ViewRequests';
+import ManageVendors from './components/procurement/ManageVendors';
+import ApprovedPurchases from './components/procurement/ApprovedPurchases';
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -127,6 +140,81 @@ function App() {
             element={
               <ProtectedRoute>
                 <ServiceRequests />
+              </ProtectedRoute>
+            }
+          />
+          {/* Inventory Routes */}
+          <Route
+            path="/admin/inventory/add"
+            element={
+              <ProtectedRoute>
+                <AddInventoryItem />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/inventory/stock"
+            element={
+              <ProtectedRoute>
+                <StockLevels />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/inventory/consumables"
+            element={
+              <ProtectedRoute>
+                <Consumables />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/inventory/alerts"
+            element={
+              <ProtectedRoute>
+                <InventoryAlerts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/inventory/history"
+            element={
+              <ProtectedRoute>
+                <InventoryHistory />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Procurement Routes */}
+          <Route
+            path="/admin/procurement/request"
+            element={
+              <ProtectedRoute>
+                <RaiseRequest />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/procurement/view"
+            element={
+              <ProtectedRoute>
+                <ViewRequests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/procurement/vendors"
+            element={
+              <ProtectedRoute>
+                <ManageVendors />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/procurement/approved"
+            element={
+              <ProtectedRoute>
+                <ApprovedPurchases />
               </ProtectedRoute>
             }
           />

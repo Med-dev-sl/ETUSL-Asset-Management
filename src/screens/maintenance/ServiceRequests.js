@@ -22,7 +22,7 @@ import {
   DialogContent,
   DialogActions
 } from '@mui/material';
-import { collection, addDoc, getDocs, query, orderBy, Timestamp, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, getDoc, doc, query, orderBy, Timestamp, where } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { format } from 'date-fns';
 
@@ -73,11 +73,12 @@ const ServiceRequests = () => {
         orderBy('createdAt', 'desc')
       );
       const snapshot = await getDocs(q);
-      const loadedRequests = await Promise.all(snapshot.docs.map(async doc => {
-        const data = doc.data();
+      const loadedRequests = await Promise.all(snapshot.docs.map(async requestDoc => {
+        const data = requestDoc.data();
         // Get asset details
-        const assetDoc = await getDocs(doc(db, 'assets', data.assetId));
-        const assetData = assetDoc.data();
+        const assetRef = doc(db, 'assets', data.assetId);
+        const assetDoc = await getDoc(assetRef);
+        const assetData = assetDoc.exists() ? assetDoc.data() : null;
         return {
           id: doc.id,
           ...data,

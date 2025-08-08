@@ -2,9 +2,64 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions for future use
+    // Helper functions
     function isValidUser(userId) {
       return exists(/databases/$(database)/documents/users/$(userId));
+    }
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isValidInventoryItem() {
+      let item = request.resource.data;
+      return item.name is string && item.name.size() > 0 &&
+        item.category in ['Office Supplies', 'Lab Supplies', 'IT Consumables', 'Cleaning Supplies', 'Medical Supplies', 'Other'] &&
+        item.quantity is number && item.quantity >= 0 &&
+        item.minStockLevel is number && item.minStockLevel >= 0 &&
+        item.unit is string && item.unit.size() > 0 &&
+        item.status in ['low', 'normal'] &&
+        item.createdBy.id is string &&
+        item.createdAt is timestamp &&
+        item.updatedBy.id is string &&
+        item.updatedAt is timestamp;
+    }
+
+    function isValidHistoryRecord() {
+      let record = request.resource.data;
+      return record.itemId is string &&
+        record.itemName is string &&
+        record.category is string &&
+        record.action in ['created', 'updated', 'deleted', 'adjusted'] &&
+        record.details is string &&
+        (record.previousQuantity == null || record.previousQuantity is number) &&
+        record.newQuantity is number &&
+        record.quantityChange is number &&
+        record.unit is string &&
+        record.timestamp is timestamp &&
+        record.updatedBy.id is string;
+    }
+
+    // Inventory Collection Rules
+    match /inventory/{itemId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() && isValidInventoryItem();
+      allow update: if isAdmin() && isValidInventoryItem();
+      allow delete: if isAdmin();
+    }
+
+    // Inventory History Rules
+    match /inventoryHistory/{recordId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() && isValidHistoryRecord();
+      // History records should never be updated or deleted
+      allow update, delete: if false;
     }
 
     // Asset Collection Rules
@@ -54,6 +109,57 @@ service cloud.firestore {
     // Service Requests Collection Rules
     match /serviceRequests/{requestId} {
       allow read, write: if true;
+    }
+
+    // Procurement Requests Collection Rules
+    match /procurementRequests/{requestId} {
+      allow create: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow update: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        ((request.auth.uid == resource.data.requestedBy.id) || 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') &&
+        (request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'updatedAt', 'updatedBy', 'approvalNote']));
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Vendors Collection Rules
+    match /vendors/{vendorId} {
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow create: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
+        request.resource.data.keys().hasAll(['name', 'email', 'createdAt', 'createdBy']);
+      allow update: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
+        request.resource.data.keys().hasAll(['name', 'email', 'updatedAt', 'updatedBy']);
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Purchases Collection Rules
+    match /purchases/{purchaseId} {
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow create: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
+        request.resource.data.keys().hasAll(['requestId', 'vendorId', 'status', 'createdAt', 'createdBy']);
+      allow update: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
+        request.resource.data.keys().hasAll(['requestId', 'vendorId', 'status', 'updatedAt', 'updatedBy']);
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     // Default rule for all other collections

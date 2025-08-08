@@ -32,7 +32,11 @@ import {
   ListAlt as ListAltIcon,
   LocationOn as LocationOnIcon,
   Build as BuildIcon,
-  Event as EventIcon
+  Event as EventIcon,
+  ShoppingCart as ShoppingCartIcon,
+  AddCircleOutline as AddCircleOutlineIcon,
+  CheckCircleOutline as CheckCircleOutlineIcon,
+  NotificationsActive as NotificationsActiveIcon
 } from '@mui/icons-material';
 
 const menuItems = [
@@ -40,6 +44,37 @@ const menuItems = [
     title: 'Dashboard',
     icon: <DashboardIcon />,
     path: '/admin/dashboard'
+  },
+  {
+    title: 'Inventory',
+    icon: <InventoryIcon />,
+    submenu: [
+      {
+        title: 'Add Item',
+        icon: <AddBox />,
+        path: '/admin/inventory/add'
+      },
+      {
+        title: 'Stock Levels',
+        icon: <ListAltIcon />,
+        path: '/admin/inventory/stock'
+      },
+      {
+        title: 'Consumables',
+        icon: <ListIcon />,
+        path: '/admin/inventory/consumables'
+      },
+      {
+        title: 'Alerts',
+        icon: <NotificationsActiveIcon />,
+        path: '/admin/inventory/alerts'
+      },
+      {
+        title: 'History',
+        icon: <HistoryIcon />,
+        path: '/admin/inventory/history'
+      }
+    ]
   },
   {
     title: 'Asset Management',
@@ -153,6 +188,32 @@ const menuItems = [
         title: 'Service Requests',
         icon: <AssignmentIcon />,
         path: '/admin/maintenance/requests'
+      }
+    ]
+  },
+  {
+    title: 'Procurement',
+    icon: <ShoppingCartIcon />,
+    submenu: [
+      {
+        title: 'Raise Request',
+        icon: <AddCircleOutlineIcon />,
+        path: '/admin/procurement/request'
+      },
+      {
+        title: 'View Requests',
+        icon: <ListAltIcon />,
+        path: '/admin/procurement/view'
+      },
+      {
+        title: 'Manage Vendors',
+        icon: <BusinessIcon />,
+        path: '/admin/procurement/vendors'
+      },
+      {
+        title: 'Approved Purchases',
+        icon: <CheckCircleOutlineIcon />,
+        path: '/admin/procurement/approved'
       }
     ]
   },
