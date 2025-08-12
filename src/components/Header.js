@@ -7,36 +7,41 @@ import {
   Button,
   Box
 } from '@mui/material';
+import InventoryAlertNotifications from './inventory/InventoryAlertNotifications';
 import { Menu as MenuIcon, ExitToApp as LogoutIcon } from '@mui/icons-material';
 
 const Header = ({ title, onMenuClick, onLogout }) => {
   return (
-    <AppBar position="fixed" sx={{ backgroundColor: '#003366', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-      <Toolbar>
-        <IconButton
-          size="large"
-          edge="start"
-          color="inherit"
-          aria-label="menu"
-          onClick={onMenuClick}
-          sx={{ mr: 2 }}
-        >
-          <MenuIcon />
-        </IconButton>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          {title || 'ETUSL Asset Management'}
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button 
-            color="inherit" 
-            onClick={onLogout} 
-            startIcon={<LogoutIcon />}
+    <>
+      <AppBar position="fixed" sx={{ backgroundColor: '#003366', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <Toolbar>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            onClick={onMenuClick}
+            sx={{ mr: 2 }}
           >
-            Logout
-          </Button>
-        </Box>
-      </Toolbar>
-    </AppBar>
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            {title || 'ETUSL Asset Management'}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button 
+              color="inherit" 
+              onClick={onLogout} 
+              startIcon={<LogoutIcon />}
+            >
+              Logout
+            </Button>
+          </Box>
+        </Toolbar>
+      </AppBar>
+      {/* Inventory alert notifications in header */}
+      <InventoryAlertNotifications />
+    </>
   );
 };
 

@@ -168,6 +168,7 @@ const Consumables = () => {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>Item ID</TableCell>
                 <TableCell>Item Name</TableCell>
                 <TableCell>Category</TableCell>
                 <TableCell>Quantity</TableCell>
@@ -187,6 +188,7 @@ const Consumables = () => {
                       : 'inherit'
                   }}
                 >
+                  <TableCell>{item.itemId || '-'}</TableCell>
                   <TableCell>{item.name}</TableCell>
                   <TableCell>{item.category}</TableCell>
                   <TableCell>{item.quantity}</TableCell>

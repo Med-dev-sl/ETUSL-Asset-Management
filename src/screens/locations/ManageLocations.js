@@ -29,7 +29,9 @@ const ManageLocations = () => {
   const [newLocation, setNewLocation] = useState({
     name: '',
     description: '',
-    building: ''
+    building: '',
+    departmentHead: '',
+    dean: ''
   });
   const [editLocation, setEditLocation] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -66,7 +68,7 @@ const ManageLocations = () => {
         createdAt: new Date().toISOString()
       });
 
-      setNewLocation({ name: '', description: '', building: '' });
+  setNewLocation({ name: '', description: '', building: '', departmentHead: '', dean: '' });
       showNotification('Location added successfully!', 'success');
       loadLocations();
     } catch (error) {
@@ -88,6 +90,8 @@ const ManageLocations = () => {
         name: editLocation.name,
         description: editLocation.description,
         building: editLocation.building,
+        departmentHead: editLocation.departmentHead,
+        dean: editLocation.dean,
         updatedAt: new Date().toISOString()
       });
 
@@ -150,6 +154,18 @@ const ManageLocations = () => {
             value={newLocation.description}
             onChange={(e) => setNewLocation(prev => ({ ...prev, description: e.target.value }))}
           />
+          <TextField
+            fullWidth
+            label="Department Head"
+            value={newLocation.departmentHead}
+            onChange={(e) => setNewLocation(prev => ({ ...prev, departmentHead: e.target.value }))}
+          />
+          <TextField
+            fullWidth
+            label="Dean"
+            value={newLocation.dean}
+            onChange={(e) => setNewLocation(prev => ({ ...prev, dean: e.target.value }))}
+          />
           <Button
             variant="contained"
             onClick={handleAddLocation}
@@ -169,7 +185,13 @@ const ManageLocations = () => {
             <ListItem key={location.id} divider>
               <ListItemText
                 primary={location.name}
-                secondary={`${location.building}${location.description ? ` - ${location.description}` : ''}`}
+                secondary={
+                  <>
+                    {location.building}{location.description ? ` - ${location.description}` : ''}
+                    <br />
+                    <b>Head:</b> {location.departmentHead || '-'} | <b>Dean:</b> {location.dean || '-'}
+                  </>
+                }
               />
               <ListItemSecondaryAction>
                 <IconButton
@@ -214,6 +236,18 @@ const ManageLocations = () => {
               label="Description"
               value={editLocation?.description || ''}
               onChange={(e) => setEditLocation(prev => ({ ...prev, description: e.target.value }))}
+            />
+            <TextField
+              fullWidth
+              label="Department Head"
+              value={editLocation?.departmentHead || ''}
+              onChange={(e) => setEditLocation(prev => ({ ...prev, departmentHead: e.target.value }))}
+            />
+            <TextField
+              fullWidth
+              label="Dean"
+              value={editLocation?.dean || ''}
+              onChange={(e) => setEditLocation(prev => ({ ...prev, dean: e.target.value }))}
             />
           </Box>
         </DialogContent>

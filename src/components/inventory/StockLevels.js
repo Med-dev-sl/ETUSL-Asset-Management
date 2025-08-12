@@ -99,6 +99,7 @@ const StockLevels = () => {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>Item ID</TableCell>
                 <TableCell>Item Name</TableCell>
                 <TableCell>Category</TableCell>
                 <TableCell>Current Stock</TableCell>
@@ -113,6 +114,7 @@ const StockLevels = () => {
                 const status = getStockStatus(item);
                 return (
                   <TableRow key={item.id}>
+                    <TableCell>{item.itemId || '-'}</TableCell>
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.quantity}</TableCell>

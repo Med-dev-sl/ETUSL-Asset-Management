@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from '../screens/Dashboard';
+import CategoryManagement from '../components/inventory/CategoryManagement';
 import NewAsset from '../screens/assets/NewAsset';
 import ManageAssets from '../screens/assets/ManageAssets';
 import AssetHistory from '../screens/assets/AssetHistory';
@@ -27,12 +28,15 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/admin/dashboard" element={<Dashboard />} />
       
-      {/* Asset Management Routes */}
-      <Route path="/admin/assets/new" element={<NewAsset />} />
-      <Route path="/admin/assets/manage" element={<ManageAssets />} />
-      <Route path="/admin/assets/history" element={<AssetHistory />} />
-      <Route path="/admin/assets/categories" element={<AssetCategories />} />
-      <Route path="/admin/assets/disposal" element={<AssetDisposal />} />
+  {/* Asset Management Routes */}
+  <Route path="/admin/assets/new" element={<NewAsset />} />
+  <Route path="/admin/assets/manage" element={<ManageAssets />} />
+  <Route path="/admin/assets/history" element={<AssetHistory />} />
+  <Route path="/admin/assets/categories" element={<AssetCategories />} />
+  <Route path="/admin/assets/disposal" element={<AssetDisposal />} />
+
+  {/* Inventory Category Route */}
+  <Route path="/admin/inventory/categories" element={<CategoryManagement />} />
       
       {/* Department Routes */}
       <Route path="/admin/departments/assign" element={<AssignToDepartment />} />

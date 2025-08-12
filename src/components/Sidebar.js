@@ -61,6 +61,21 @@ const menuItems = [
         path: '/admin/inventory/add'
       },
       {
+        title: 'Stores Request',
+        icon: <AssignmentIcon />,
+        path: '/admin/inventory/request'
+      },
+      {
+        title: 'Request Status',
+        icon: <FactCheckIcon />,
+        path: '/admin/inventory/request-status'
+      },
+      {
+        title: 'Approve Requests',
+        icon: <CheckCircleOutlineIcon />,
+        path: '/admin/inventory/approve'
+      },
+      {
         title: 'Stock Levels',
         icon: <ListAltIcon />,
         path: '/admin/inventory/stock'
@@ -79,6 +94,11 @@ const menuItems = [
         title: 'History',
         icon: <HistoryIcon />,
         path: '/admin/inventory/history'
+      },
+      {
+        title: 'Categories',
+        icon: <ListIcon />,
+        path: '/admin/inventory/categories'
       }
     ]
   },
@@ -154,6 +174,16 @@ const menuItems = [
         path: '/admin/departments/view'
       },
       {
+        title: 'Add Department, Head & Dean',
+        icon: <AddCircleOutlineIcon />,
+        path: '/admin/departments/add-head'
+      },
+      {
+        title: 'Departments, Heads & Deans',
+        icon: <ListIcon />,
+        path: '/admin/departments/list-heads'
+      },
+      {
         title: 'Manage Locations',
         icon: <LocationOnIcon />,
         path: '/admin/locations/manage'
@@ -165,19 +195,19 @@ const menuItems = [
     icon: <PeopleIcon />,
     submenu: [
       {
-        title: 'Add User',
-        icon: <AddBox />,
-        path: '/admin/users/new'
-      },
-      {
-        title: 'User List',
+        title: 'Manage Users',
         icon: <ListIcon />,
-        path: '/admin/users/list'
+        path: '/admin/users/manage'
       },
       {
         title: 'User Roles',
         icon: <Security />,
         path: '/admin/users/roles'
+      },
+      {
+        title: 'Access Control',
+        icon: <Security />,
+        path: '/admin/users/permissions'
       }
     ]
   },

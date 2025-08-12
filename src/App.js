@@ -1,3 +1,8 @@
+import ApproveStoresRequest from './components/inventory/ApproveStoresRequest';
+import StoresRequestStatus from './components/inventory/StoresRequestStatus';
+import StoresRequest from './components/inventory/StoresRequest';
+import AddDepartmentHead from './components/departments/AddDepartmentHead';
+import ListDepartmentHeads from './components/departments/ListDepartmentHeads';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -26,6 +31,7 @@ import StockLevels from './components/inventory/StockLevels';
 import Consumables from './components/inventory/Consumables';
 import InventoryAlerts from './components/inventory/InventoryAlerts';
 import InventoryHistory from './components/inventory/InventoryHistory';
+import CategoryManagement from './components/inventory/CategoryManagement';
 
 // Import reports components
 import GenerateReports from './components/reports/GenerateReports';
@@ -45,6 +51,11 @@ import SystemSettings from './components/settings/SystemSettings';
 import BackupRestore from './components/settings/BackupRestore';
 import NotificationSettings from './components/settings/NotificationSettings';
 
+// Import user management components
+import ManageUsers from './components/users/ManageUsers';
+import RoleManagement from './components/users/RoleManagement';
+import AccessControl from './components/users/AccessControl';
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -59,6 +70,9 @@ function App() {
                 <AdminLayout>
                   <Routes>
                     <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="users/manage" element={<ManageUsers />} />
+                    <Route path="users/roles" element={<RoleManagement />} />
+                    <Route path="users/access" element={<AccessControl />} />
                     <Route path="assets/new" element={<AddNewAsset />} />
                     <Route path="assets/manage" element={<AssetManagement />} />
                     <Route path="assets/history" element={<AssetHistoryList />} />
@@ -67,15 +81,21 @@ function App() {
                     <Route path="assets/disposal" element={<AssetDisposal />} />
                     <Route path="departments/assign" element={<AssignToDepartment />} />
                     <Route path="departments/view" element={<ViewByDepartment />} />
+                    <Route path="departments/add-head" element={<AddDepartmentHead />} />
+                    <Route path="departments/list-heads" element={<ListDepartmentHeads />} />
                     <Route path="locations/manage" element={<ManageLocations />} />
                     <Route path="maintenance/schedule" element={<ScheduleMaintenance />} />
                     <Route path="maintenance/logs" element={<MaintenanceLogs />} />
                     <Route path="maintenance/requests" element={<ServiceRequests />} />
                     <Route path="inventory/add" element={<AddInventoryItem />} />
+                    <Route path="inventory/request" element={<StoresRequest />} />
+                    <Route path="inventory/request-status" element={<StoresRequestStatus />} />
+                    <Route path="inventory/approve" element={<ApproveStoresRequest />} />
                     <Route path="inventory/stock" element={<StockLevels />} />
                     <Route path="inventory/consumables" element={<Consumables />} />
                     <Route path="inventory/alerts" element={<InventoryAlerts />} />
                     <Route path="inventory/history" element={<InventoryHistory />} />
+                    <Route path="inventory/categories" element={<CategoryManagement />} />
                     <Route path="reports/generate" element={<GenerateReports />} />
                     <Route path="reports/verify" element={<AssetVerification />} />
                     <Route path="reports/audit" element={<AuditLogs />} />

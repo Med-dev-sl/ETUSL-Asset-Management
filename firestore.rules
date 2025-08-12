@@ -3,18 +3,28 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Helper functions
-    function isValidUser(userId) {
-      return exists(/databases/$(database)/documents/users/$(userId));
-    }
-
-    function isAuthenticated() {
+    function isSignedIn() {
       return request.auth != null;
     }
-
+    
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function hasRole(role) {
+      return isSignedIn() && getRole() == role;
+    }
+    
     function isAdmin() {
-      return isAuthenticated() &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return hasRole('admin');
+    }
+    
+    function hasPermission(permission) {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isSignedIn() && (
+        isAdmin() || 
+        userDoc.data.permissions[permission] == true
+      );
     }
 
     function hasValidFields(requiredFields) {
@@ -27,12 +37,47 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // User profiles
+    // Users collection
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow update: if request.auth.uid == userId || isAdmin();
-      allow create: if isAdmin();
+      function validateNewUser() {
+        let data = request.resource.data;
+        return validateUserData() &&
+          data.passwordHash is string &&
+          data.passwordSalt is string;
+      }
+
+      function validateUpdate() {
+        let diff = request.resource.data.diff(resource.data);
+        return (
+          !diff.affectedKeys().hasAny(['passwordHash', 'passwordSalt']) ||
+          (data.passwordHash is string && data.passwordSalt is string)
+        );
+      }
+
+      allow read: if isSignedIn() && (
+        request.auth.uid == userId || 
+        hasPermission('users.read')
+      );
+      allow create: if isAdmin() && validateNewUser();
+      allow update: if (
+        isAdmin() || (
+          request.auth.uid == userId &&
+          !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['roles', 'permissions'])
+        )
+      ) && validateUpdate();
       allow delete: if isAdmin();
+
+    // Roles collection
+    match /roles/{roleId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Permissions collection
+    match /permissions/{permissionId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     // Backup records

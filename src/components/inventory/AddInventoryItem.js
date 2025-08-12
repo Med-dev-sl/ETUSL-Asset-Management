@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -20,18 +20,14 @@ import {
   addDoc,
   serverTimestamp,
   doc,
-  getDoc
+  getDoc,
+  getDocs,
+  runTransaction
 } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
-const itemCategories = [
-  'Office Supplies',
-  'Lab Supplies',
-  'IT Consumables',
-  'Cleaning Supplies',
-  'Medical Supplies',
-  'Other'
-];
+
+// Categories will be fetched from Firestore
 
 const AddInventoryItem = () => {
   const [formData, setFormData] = useState({
@@ -45,9 +41,24 @@ const AddInventoryItem = () => {
     supplier: '',
     notes: ''
   });
+  const [categories, setCategories] = useState([]);
+  useEffect(() => {
+    // Fetch categories from Firestore (inventoryCategories collection)
+    const fetchCategories = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, 'inventoryCategories'));
+        const cats = snapshot.docs.map(doc => doc.data().name);
+        setCategories(cats);
+      } catch (error) {
+        setCategories([]);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const [loading, setLoading] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
+  const [lastItemId, setLastItemId] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
@@ -110,9 +121,23 @@ const AddInventoryItem = () => {
         role: userData.role
       };
 
+      // Generate readable itemId (ETUSTORES000001+)
+      const itemId = await runTransaction(db, async (transaction) => {
+        const counterRef = doc(db, 'inventoryMeta', 'itemIdCounter');
+        const counterSnap = await transaction.get(counterRef);
+        let nextNumber = 1;
+        if (counterSnap.exists()) {
+          nextNumber = counterSnap.data().lastNumber + 1;
+        }
+        transaction.set(counterRef, { lastNumber: nextNumber });
+        // Format: ETUSTORES + 6-digit number, zero-padded
+        return `ETUSTORES${String(nextNumber).padStart(6, '0')}`;
+      });
+
       // Prepare inventory item data
       const inventoryData = {
         ...formData,
+        itemId,
         quantity: parseInt(formData.quantity),
         minStockLevel: parseInt(formData.minStockLevel),
         status: parseInt(formData.quantity) <= parseInt(formData.minStockLevel) ? 'low' : 'normal',
@@ -127,7 +152,7 @@ const AddInventoryItem = () => {
 
       // Create history record
       await addDoc(collection(db, 'inventoryHistory'), {
-        itemId: docRef.id,
+        itemId,
         itemName: formData.name,
         category: formData.category,
         action: 'created',
@@ -140,8 +165,9 @@ const AddInventoryItem = () => {
         updatedBy: currentUser
       });
 
-      // Show success message
-      setSuccessOpen(true);
+  // Show success message and display itemId
+  setLastItemId(itemId);
+  setSuccessOpen(true);
 
       // Reset form
       setFormData({
@@ -194,11 +220,15 @@ const AddInventoryItem = () => {
                 value={formData.category}
                 onChange={handleChange}
               >
-                {itemCategories.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
+                {categories.length === 0 ? (
+                  <MenuItem value="" disabled>No categories found</MenuItem>
+                ) : (
+                  categories.map((category) => (
+                    <MenuItem key={category} value={category}>
+                      {category}
+                    </MenuItem>
+                  ))
+                )}
               </TextField>
             </Grid>
 
@@ -302,9 +332,14 @@ const AddInventoryItem = () => {
       <Dialog open={successOpen} onClose={() => setSuccessOpen(false)}>
         <DialogTitle>Success</DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography gutterBottom>
             Inventory item has been added successfully.
           </Typography>
+          {lastItemId && (
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Item ID: <span style={{ color: '#1976d2' }}>{lastItemId}</span>
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSuccessOpen(false)}>Close</Button>

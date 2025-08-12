@@ -210,6 +210,7 @@ const InventoryHistory = () => {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>Item ID</TableCell>
                 <TableCell>Item Name</TableCell>
                 <TableCell>Category</TableCell>
                 <TableCell>Action</TableCell>
@@ -221,6 +222,7 @@ const InventoryHistory = () => {
             <TableBody>
               {history.map((record) => (
                 <TableRow key={record.id}>
+                  <TableCell>{record.itemId || '-'}</TableCell>
                   <TableCell>{record.itemName}</TableCell>
                   <TableCell>{record.category}</TableCell>
                   <TableCell>
