@@ -1,3 +1,4 @@
+import InventoryCategoryAdmin from './components/inventory/InventoryCategoryAdmin';
 import ApproveStoresRequest from './components/inventory/ApproveStoresRequest';
 import StoresRequestStatus from './components/inventory/StoresRequestStatus';
 import StoresRequest from './components/inventory/StoresRequest';
@@ -91,6 +92,7 @@ function App() {
                     <Route path="inventory/request" element={<StoresRequest />} />
                     <Route path="inventory/request-status" element={<StoresRequestStatus />} />
                     <Route path="inventory/approve" element={<ApproveStoresRequest />} />
+                    <Route path="inventory/category-admin" element={<InventoryCategoryAdmin />} />
                     <Route path="inventory/stock" element={<StockLevels />} />
                     <Route path="inventory/consumables" element={<Consumables />} />
                     <Route path="inventory/alerts" element={<InventoryAlerts />} />

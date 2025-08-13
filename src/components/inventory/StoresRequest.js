@@ -5,11 +5,11 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { collection, getDocs, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
-import emailjs from 'emailjs-com';
+// import emailjs from 'emailjs-com';
 import { db } from '../../firebase/config';
 
 const approvalEmails = [
-  { label: 'Estate Officer', email: 'mohamedsallu24@gmail.com' },
+  { label: 'Estate Officer', email: 'sllearninghub98@gmail.com' },
   { label: 'Registrar', email: 'magbieprincess@gmail.com' },
   { label: 'Finance', email: 'princessmagbie20@gmail.com' },
   { label: 'Principal', email: 'etulearninghubetusl@gmail.com' }
@@ -58,7 +58,10 @@ const StoresRequest = () => {
       // Fetch only inventory items with the selected category using Firestore query
       const q = query(collection(db, 'inventory'), where('category', '==', selectedCategory));
       getDocs(q).then(snapshot => {
-        setInventory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Selected Category:', selectedCategory);
+        console.log('Fetched Inventory Items:', items);
+        setInventory(items);
       });
     } else {
       setInventory([]);
@@ -88,28 +91,7 @@ const StoresRequest = () => {
     setRequests(prev => prev.filter((_, i) => i !== idx));
   };
 
-  // Helper to send email via EmailJS
-  const sendApprovalEmail = async (toEmail, toName, requestDetails) => {
-    // You must set up your EmailJS service, template, and user ID
-    // Replace these with your actual EmailJS IDs
-   const serviceID = 'service_4p60v4c';
-  const templateID = 'template_3fh9k8z';
-const userID = '7nidvs03z4-xpHE5n';
-    const templateParams = {
-      to_email: toEmail,
-      to_name: toName,
-      applicant: applicant,
-      department: departments.find(d => d.id === selectedDept)?.name || '',
-      purpose: purpose,
-      requests: requestDetails,
-    };
-    try {
-      await emailjs.send(serviceID, templateID, templateParams, userID);
-    } catch (err) {
-      // Optionally show error or log
-      console.error('EmailJS error:', err);
-    }
-  };
+
 
   const handleSubmit = async () => {
     if (!selectedDept || !applicant || !purpose || requests.length === 0) {
@@ -130,11 +112,7 @@ const userID = '7nidvs03z4-xpHE5n';
         status: 'pending',
         createdAt: serverTimestamp()
       });
-      // Send email to Estate Officer for first approval
-      const estateOfficer = approvalEmails[0];
-      const requestDetails = requests.map(r => `${r.inventoryName} (${r.quantity})`).join(', ');
-      await sendApprovalEmail(estateOfficer.email, estateOfficer.label, requestDetails);
-      setNotification({ open: true, message: 'Request submitted! Awaiting approvals. Estate Officer notified by email.', severity: 'success' });
+  setNotification({ open: true, message: 'Request submitted! Awaiting approvals.', severity: 'success' });
       setSelectedDept(''); setDeptHead(''); setDean(''); setApplicant(''); setPurpose(''); setRequests([]);
     } catch (e) {
       setNotification({ open: true, message: 'Error: ' + e.message, severity: 'error' });

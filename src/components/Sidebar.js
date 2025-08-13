@@ -76,6 +76,11 @@ const menuItems = [
         path: '/admin/inventory/approve'
       },
       {
+        title: 'Assign Item Category',
+        icon: <AssignmentIcon />,
+        path: '/admin/inventory/category-admin'
+      },
+      {
         title: 'Stock Levels',
         icon: <ListAltIcon />,
         path: '/admin/inventory/stock'
