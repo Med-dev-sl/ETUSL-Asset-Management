@@ -10,6 +10,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import theme from './theme';
 import LoginScreen from './screens/LoginScreen';
 import AdminDashboard from './screens/admin/Dashboard';
+import LogisticsManagerDashboard from './dashboards/LogisticsManagerDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './components/layout/AdminLayout';
 import AddNewAsset from './screens/assets/AddNewAsset';
@@ -64,6 +65,17 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<LoginScreen />} />
+
+          {/* Logistics Manager Dashboard Route */}
+          <Route
+            path="/logistics/dashboard"
+            element={
+              <ProtectedRoute>
+                <LogisticsManagerDashboard />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/admin/*"
             element={

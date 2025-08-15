@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
+import { 
   Drawer,
   List,
   ListItem,
@@ -10,8 +10,11 @@ import {
   Collapse,
   Box,
   Typography,
-  IconButton
+  IconButton,
+  Badge,
 } from '@mui/material';
+import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import {
   Dashboard as DashboardIcon,
   People as PeopleIcon,
@@ -134,37 +137,6 @@ const menuItems = [
     ]
   },
   {
-    title: 'Asset Management',
-    icon: <InventoryIcon />,
-    submenu: [
-      {
-        title: 'Add New Asset',
-        icon: <AddBox />,
-        path: '/admin/assets/new'
-      },
-      {
-        title: 'View/Edit Assets',
-        icon: <ListIcon />,
-        path: '/admin/assets/manage'
-      },
-      {
-        title: 'Asset History',
-        icon: <HistoryIcon />,
-        path: '/admin/assets/history'
-      },
-      {
-        title: 'Asset Categories',
-        icon: <ListIcon />,
-        path: '/admin/assets/categories'
-      },
-      {
-        title: 'Asset Disposal',
-        icon: <DeleteOutline />,
-        path: '/admin/assets/disposal'
-      }
-    ]
-  },
-  {
     title: 'Departments & Locations',
     icon: <BusinessIcon />,
     submenu: [
@@ -192,48 +164,6 @@ const menuItems = [
         title: 'Manage Locations',
         icon: <LocationOnIcon />,
         path: '/admin/locations/manage'
-      }
-    ]
-  },
-  {
-    title: 'User Management',
-    icon: <PeopleIcon />,
-    submenu: [
-      {
-        title: 'Manage Users',
-        icon: <ListIcon />,
-        path: '/admin/users/manage'
-      },
-      {
-        title: 'User Roles',
-        icon: <Security />,
-        path: '/admin/users/roles'
-      },
-      {
-        title: 'Access Control',
-        icon: <Security />,
-        path: '/admin/users/permissions'
-      }
-    ]
-  },
-  {
-    title: 'Assignments',
-    icon: <AssignmentIcon />,
-    submenu: [
-      {
-        title: 'New Assignment',
-        icon: <AddBox />,
-        path: '/admin/assignments/new'
-      },
-      {
-        title: 'Assignment List',
-        icon: <ListIcon />,
-        path: '/admin/assignments/list'
-      },
-      {
-        title: 'Assignment History',
-        icon: <HistoryIcon />,
-        path: '/admin/assignments/history'
       }
     ]
   },
@@ -309,13 +239,104 @@ const menuItems = [
         path: '/admin/settings/notifications'
       }
     ]
+  },
+  {
+    title: 'Maintenance',
+    icon: <BuildIcon />,
+    submenu: [
+      {
+        title: 'Schedule Maintenance',
+        icon: <EventIcon />,
+        path: '/admin/maintenance/schedule'
+      },
+      {
+        title: 'Maintenance Logs',
+        icon: <HistoryIcon />,
+        path: '/admin/maintenance/logs'
+      },
+      {
+        title: 'Service Requests',
+        icon: <AssignmentIcon />,
+        path: '/admin/maintenance/requests'
+      }
+    ]
+  },
+  {
+    title: 'Procurement',
+    icon: <ShoppingCartIcon />,
+    submenu: [
+      {
+        title: 'Raise Request',
+        icon: <AddCircleOutlineIcon />,
+        path: '/admin/procurement/request'
+      },
+      {
+        title: 'View Requests',
+        icon: <ListAltIcon />,
+        path: '/admin/procurement/view'
+      },
+      {
+        title: 'Manage Vendors',
+        icon: <BusinessIcon />,
+        path: '/admin/procurement/vendors'
+      },
+      {
+        title: 'Approved Purchases',
+        icon: <CheckCircleOutlineIcon />,
+        path: '/admin/procurement/approved'
+      }
+    ]
   }
 ];
 
 const Sidebar = ({ open, onClose, width = 280 }) => {
+  // Notification state
+  const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [lowStockCount, setLowStockCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState({});
+
+  // Fetch pending approvals count
+  useEffect(() => {
+    const q = collection(db, 'storesRequests');
+    const fetchApprovals = async () => {
+      const snapshot = await getDocs(q);
+      let count = 0;
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (Array.isArray(data.approvals)) {
+          // Count if any approval is pending
+          if (data.approvals.some(a => a.status === 'pending')) count++;
+        }
+      });
+      setPendingApprovals(count);
+    };
+    fetchApprovals();
+    // Optionally, set up polling or snapshot for real-time
+    // const unsub = onSnapshot(q, fetchApprovals);
+    // return () => unsub();
+  }, []);
+
+  // Fetch low stock count
+  useEffect(() => {
+    const q = collection(db, 'inventory');
+    const fetchLowStock = async () => {
+      const snapshot = await getDocs(q);
+      let count = 0;
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (typeof data.quantity === 'number' && typeof data.minStockLevel === 'number') {
+          if (data.quantity <= data.minStockLevel) count++;
+        }
+      });
+      setLowStockCount(count);
+    };
+    fetchLowStock();
+    // Optionally, set up polling or snapshot for real-time
+    // const unsub = onSnapshot(q, fetchLowStock);
+    // return () => unsub();
+  }, []);
 
   const handleSubmenuClick = (title) => {
     setExpandedItems(prev => ({
@@ -346,33 +367,44 @@ const Sidebar = ({ open, onClose, width = 280 }) => {
           </ListItem>
           <Collapse in={expandedItems[item.title]} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {item.submenu.map((subItem) => (
-                <ListItem key={subItem.title} disablePadding>
-                  <ListItemButton 
-                    sx={{ 
-                      pl: 4,
-                      backgroundColor: location.pathname === subItem.path ? 'rgba(0, 51, 102, 0.08)' : 'transparent',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0, 51, 102, 0.12)'
-                      }
-                    }}
-                    onClick={() => handleMenuItemClick(subItem.path)}
-                  >
-                    <ListItemIcon sx={{ color: location.pathname === subItem.path ? 'primary.main' : 'inherit' }}>
-                      {subItem.icon}
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary={subItem.title}
+              {item.submenu.map((subItem) => {
+                let badgeContent = 0;
+                if (item.title === 'Inventory' && subItem.title === 'Approve Requests') badgeContent = pendingApprovals;
+                if (item.title === 'Inventory' && subItem.title === 'Stock Levels') badgeContent = lowStockCount;
+                return (
+                  <ListItem key={subItem.title} disablePadding>
+                    <ListItemButton 
                       sx={{ 
-                        '& .MuiTypography-root': { 
-                          color: location.pathname === subItem.path ? 'primary.main' : 'inherit',
-                          fontWeight: location.pathname === subItem.path ? 600 : 400
+                        pl: 4,
+                        backgroundColor: location.pathname === subItem.path ? 'rgba(0, 51, 102, 0.08)' : 'transparent',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 51, 102, 0.12)'
                         }
                       }}
-                    />
-                  </ListItemButton>
-                </ListItem>
-              ))}
+                      onClick={() => handleMenuItemClick(subItem.path)}
+                    >
+                      <ListItemIcon sx={{ color: location.pathname === subItem.path ? 'primary.main' : 'inherit' }}>
+                        {badgeContent > 0 ? (
+                          <Badge badgeContent={badgeContent} color={subItem.title === 'Approve Requests' ? 'error' : 'warning'}>
+                            {subItem.icon}
+                          </Badge>
+                        ) : (
+                          subItem.icon
+                        )}
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={subItem.title}
+                        sx={{ 
+                          '& .MuiTypography-root': { 
+                            color: location.pathname === subItem.path ? 'primary.main' : 'inherit',
+                            fontWeight: location.pathname === subItem.path ? 600 : 400
+                          }
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
             </List>
           </Collapse>
         </React.Fragment>

@@ -13,7 +13,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { Email, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import createAdminUser from '../utils/createAdmin';
 import { useNavigate } from 'react-router-dom';
@@ -72,6 +72,7 @@ const LoginScreen = () => {
         return;
       }
 
+
       // Store user data in localStorage
       const userToStore = {
         id: userSnapshot.id,
@@ -80,13 +81,32 @@ const LoginScreen = () => {
         name: userData.name,
         department: userData.department,
       };
-      
       localStorage.setItem('user', JSON.stringify(userToStore));
       console.log('Successfully logged in');
 
-      // Navigate to dashboard
-      navigate('/admin/dashboard');
-      
+      // Store/update user data in Firestore (idempotent)
+      await setDoc(
+        doc(db, 'users', userSnapshot.id),
+        {
+          email: userData.email,
+          role: userData.role || 'user',
+          name: userData.name || '',
+          department: userData.department || '',
+          password: userData.password,
+        },
+        { merge: true }
+      );
+
+      // Custom redirect for logistics manager
+      if (
+        userData.email === 'logistics@etusl.edu.sl' &&
+        formData.password === 'logisticsManager'
+      ) {
+        navigate('/logistics/dashboard');
+      } else {
+        // Navigate to admin dashboard by default
+        navigate('/admin/dashboard');
+      }
     } catch (error) {
       console.error('Login error:', error);
       setError(
@@ -239,6 +259,39 @@ const LoginScreen = () => {
                 }}
               >
                 Initialize Admin
+              </Button>
+            )}
+
+            {/* Button to create logistics manager user, disappears after creation */}
+            {typeof window !== 'undefined' && !localStorage.getItem('logisticsUserCreated') && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                fullWidth
+                sx={{ mt: 1, fontSize: '0.8rem' }}
+                onClick={async () => {
+                  try {
+                    const logisticsUser = {
+                      email: 'logistics@etusl.edu.sl',
+                      password: 'logisticsManager',
+                      role: 'logistics',
+                      name: 'Logistics Manager',
+                      department: 'Logistics',
+                    };
+                    await setDoc(
+                      doc(db, 'users', logisticsUser.email),
+                      logisticsUser,
+                      { merge: true }
+                    );
+                    localStorage.setItem('logisticsUserCreated', '1');
+                    alert('Logistics Manager user created!');
+                    window.location.reload();
+                  } catch (err) {
+                    alert('Error creating logistics user: ' + err.message);
+                  }
+                }}
+              >
+                Create Logistics Manager User
               </Button>
             )}
           </Box>
