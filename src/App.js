@@ -66,6 +66,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginScreen />} />
 
+
           {/* Logistics Manager Dashboard Route */}
           <Route
             path="/logistics/dashboard"
@@ -75,6 +76,18 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Logistics Inventory Routes (reuse admin inventory components) */}
+          <Route path="/logistics/inventory/add" element={<ProtectedRoute><AddInventoryItem /></ProtectedRoute>} />
+          <Route path="/logistics/inventory/request" element={<ProtectedRoute><StoresRequest /></ProtectedRoute>} />
+          <Route path="/logistics/inventory/request-status" element={<ProtectedRoute><StoresRequestStatus /></ProtectedRoute>} />
+          <Route path="/logistics/inventory/approve" element={<ProtectedRoute><ApproveStoresRequest /></ProtectedRoute>} />
+          <Route path="/logistics/inventory/category-admin" element={<ProtectedRoute><InventoryCategoryAdmin /></ProtectedRoute>} />
+          <Route path="/logistics/inventory/stock" element={<ProtectedRoute><StockLevels /></ProtectedRoute>} />
+          <Route path="/logistics/inventory/consumables" element={<ProtectedRoute><Consumables /></ProtectedRoute>} />
+          <Route path="/logistics/inventory/alerts" element={<ProtectedRoute><InventoryAlerts /></ProtectedRoute>} />
+          <Route path="/logistics/inventory/history" element={<ProtectedRoute><InventoryHistory /></ProtectedRoute>} />
+          <Route path="/logistics/inventory/categories" element={<ProtectedRoute><CategoryManagement /></ProtectedRoute>} />
 
           <Route
             path="/admin/*"

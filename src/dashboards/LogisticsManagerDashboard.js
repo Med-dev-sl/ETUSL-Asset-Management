@@ -26,30 +26,62 @@ const sidebarMenu = [
 		text: 'Dashboard',
 		icon: <DashboardIcon />,
 		path: '/logistics/dashboard',
-		children: [
-			{ text: 'Overview', path: '/logistics/dashboard' },
-			{ text: 'Recent Activity', path: '/logistics/dashboard/activity' },
-		],
 	},
 	{
 		text: 'Inventory',
 		icon: <Inventory2Icon />,
-		path: '/logistics/inventory',
-		children: [
-			{ text: 'All Inventory', path: '/logistics/inventory' },
-			{ text: 'Add Item', path: '/logistics/inventory/add' },
-			{ text: 'Categories', path: '/logistics/inventory/categories' },
+		submenu: [
+			{
+				text: 'Add Item',
+				icon: <AssignmentIcon />,
+				path: '/logistics/inventory/add',
+			},
+			{
+				text: 'Stores Request',
+				icon: <AssignmentIcon />,
+				path: '/logistics/inventory/request',
+			},
+			{
+				text: 'Request Status',
+				icon: <AssessmentIcon />,
+				path: '/logistics/inventory/request-status',
+			},
+			{
+				text: 'Approve Requests',
+				icon: <AssignmentIcon />,
+				path: '/logistics/inventory/approve',
+			},
+			{
+				text: 'Assign Item Category',
+				icon: <AssignmentIcon />,
+				path: '/logistics/inventory/category-admin',
+			},
+			{
+				text: 'Stock Levels',
+				icon: <AssessmentIcon />,
+				path: '/logistics/inventory/stock',
+			},
+			{
+				text: 'Consumables',
+				icon: <AssignmentIcon />,
+				path: '/logistics/inventory/consumables',
+			},
+			{
+				text: 'Alerts',
+				icon: <AssessmentIcon />,
+				path: '/logistics/inventory/alerts',
+			},
+			{
+				text: 'History',
+				icon: <AssessmentIcon />,
+				path: '/logistics/inventory/history',
+			},
+			{
+				text: 'Categories',
+				icon: <AssignmentIcon />,
+				path: '/logistics/inventory/categories',
+			},
 		],
-	},
-	{
-		text: 'Requests',
-		icon: <AssignmentIcon />,
-		path: '/logistics/requests',
-	},
-	{
-		text: 'Reports',
-		icon: <AssessmentIcon />,
-		path: '/logistics/reports',
 	},
 	{
 		text: 'Logout',
@@ -58,11 +90,20 @@ const sidebarMenu = [
 	},
 ];
 
+
 const LogisticsManagerDashboard = () => {
 	const [openMenus, setOpenMenus] = useState({});
 
 	const handleSidebarMenuClick = (text) => {
 		setOpenMenus((prev) => ({ ...prev, [text]: !prev[text] }));
+	};
+
+	const handleMenuClick = (item) => {
+		if (item.submenu) {
+			handleSidebarMenuClick(item.text);
+		} else {
+			window.location.pathname = item.path;
+		}
 	};
 
 	return (
@@ -86,17 +127,18 @@ const LogisticsManagerDashboard = () => {
 				<List>
 					{sidebarMenu.map((item) => (
 						<React.Fragment key={item.text}>
-							<ListItem button onClick={() => item.children ? handleSidebarMenuClick(item.text) : window.location.pathname = item.path}>
+							<ListItem button onClick={() => handleMenuClick(item)}>
 								<ListItemIcon>{item.icon}</ListItemIcon>
 								<ListItemText primary={item.text} />
-								{item.children ? (openMenus[item.text] ? <ExpandLess /> : <ExpandMore />) : null}
+								{item.submenu ? (openMenus[item.text] ? <ExpandLess /> : <ExpandMore />) : null}
 							</ListItem>
-							{item.children && (
+							{item.submenu && (
 								<Collapse in={openMenus[item.text]} timeout="auto" unmountOnExit>
 									<List component="div" disablePadding>
-										{item.children.map((child) => (
-											<ListItem button key={child.text} sx={{ pl: 4 }} onClick={() => window.location.pathname = child.path}>
-												<ListItemText primary={child.text} />
+										{item.submenu.map((sub) => (
+											<ListItem button key={sub.text} sx={{ pl: 4 }} onClick={() => window.location.pathname = sub.path}>
+												<ListItemIcon>{sub.icon}</ListItemIcon>
+												<ListItemText primary={sub.text} />
 											</ListItem>
 										))}
 									</List>
