@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -15,6 +15,8 @@ import {
   Alert,
   Snackbar
 } from '@mui/material';
+
+import * as XLSX from 'xlsx';
 import {
   collection,
   addDoc,
@@ -25,6 +27,27 @@ import {
   runTransaction
 } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+
+// Helper: Parse SQL insert statements for inventory
+function parseSQLInventory(sql) {
+  // Only supports: INSERT INTO inventory (col1, col2, ...) VALUES (...), (...);
+  const match = sql.match(/INSERT INTO inventory \(([^)]+)\) VALUES ([\s\S]+);/i);
+  if (!match) return [];
+  const columns = match[1].split(',').map(s => s.trim().replace(/`/g, ''));
+  const valuesStr = match[2];
+  // Split on '),(' or '), ('
+  const valueGroups = valuesStr
+    .replace(/^\s*\(/, '')
+    .replace(/\)\s*;?\s*$/, '')
+    .split(/\)\s*,\s*\(/);
+  return valueGroups.map(group => {
+    // Split by comma, but ignore commas inside quotes
+    const vals = group.match(/('(?:[^']|''|\\')*'|[^,]+)/g).map(v => v.trim().replace(/^'/, '').replace(/'$/, '').replace(/''/g, "'"));
+    const obj = {};
+    columns.forEach((col, i) => { obj[col] = vals[i]; });
+    return obj;
+  });
+}
 
 
 // Categories will be fetched from Firestore
@@ -57,6 +80,106 @@ const AddInventoryItem = () => {
   }, []);
 
   const [loading, setLoading] = useState(false);
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [batchError, setBatchError] = useState('');
+  const [batchSuccess, setBatchSuccess] = useState('');
+  const fileInputRef = useRef();
+  // Batch import handler
+  const handleBatchImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setBatchLoading(true);
+    setBatchError('');
+    setBatchSuccess('');
+    try {
+      let items = [];
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        // Excel import
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        items = XLSX.utils.sheet_to_json(sheet);
+      } else if (file.name.endsWith('.csv')) {
+        // CSV import
+        const text = await file.text();
+        const rows = text.split(/\r?\n/).filter(Boolean);
+        const headers = rows[0].split(',').map(h => h.trim());
+        items = rows.slice(1).map(row => {
+          const vals = row.split(',');
+          const obj = {};
+          headers.forEach((h, i) => { obj[h] = vals[i]; });
+          return obj;
+        });
+      } else if (file.name.endsWith('.sql')) {
+        // SQL import
+        const text = await file.text();
+        items = parseSQLInventory(text);
+      } else {
+        throw new Error('Unsupported file type. Use Excel (.xlsx), CSV, or SQL.');
+      }
+      // Validate and add each item
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !user.id) throw new Error('You must be logged in to add inventory items');
+      const userDoc = await getDoc(doc(db, 'users', user.id));
+      if (!userDoc.exists()) throw new Error('User data not found');
+      const userData = userDoc.data();
+      if (!userData.role || userData.role !== 'admin') throw new Error('Only administrators can add inventory items');
+      const currentUser = {
+        id: user.id,
+        name: userData.displayName || userData.email.split('@')[0],
+        email: userData.email,
+        role: userData.role
+      };
+      let added = 0;
+      for (const item of items) {
+        // Required: name, category, quantity, minStockLevel, unit
+        if (!item.name || !item.category || !item.quantity || !item.minStockLevel || !item.unit) continue;
+        // Generate itemId
+        const itemId = await runTransaction(db, async (transaction) => {
+          const counterRef = doc(db, 'inventoryMeta', 'itemIdCounter');
+          const counterSnap = await transaction.get(counterRef);
+          let nextNumber = 1;
+          if (counterSnap.exists()) {
+            nextNumber = counterSnap.data().lastNumber + 1;
+          }
+          transaction.set(counterRef, { lastNumber: nextNumber });
+          return `ETUSTORES${String(nextNumber).padStart(6, '0')}`;
+        });
+        const inventoryData = {
+          ...item,
+          itemId,
+          quantity: parseInt(item.quantity),
+          minStockLevel: parseInt(item.minStockLevel),
+          status: parseInt(item.quantity) <= parseInt(item.minStockLevel) ? 'low' : 'normal',
+          createdBy: currentUser,
+          createdAt: serverTimestamp(),
+          updatedBy: currentUser,
+          updatedAt: serverTimestamp()
+        };
+        await addDoc(collection(db, 'inventory'), inventoryData);
+        await addDoc(collection(db, 'inventoryHistory'), {
+          itemId,
+          itemName: item.name,
+          category: item.category,
+          action: 'created',
+          details: `Initial quantity: ${item.quantity} ${item.unit}`,
+          previousQuantity: null,
+          newQuantity: parseInt(item.quantity),
+          quantityChange: parseInt(item.quantity),
+          unit: item.unit,
+          timestamp: serverTimestamp(),
+          updatedBy: currentUser
+        });
+        added++;
+      }
+      setBatchSuccess(`Successfully imported ${added} inventory items.`);
+    } catch (err) {
+      setBatchError(err.message || 'Batch import failed.');
+    } finally {
+      setBatchLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
   const [successOpen, setSuccessOpen] = useState(false);
   const [lastItemId, setLastItemId] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -193,6 +316,24 @@ const AddInventoryItem = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Paper elevation={3} sx={{ p: 3 }}>
+        {/* Batch Import Section */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>Batch Import Inventory</Typography>
+          <input
+            type="file"
+            accept=".xlsx,.xls,.csv,.sql"
+            ref={fileInputRef}
+            style={{ display: 'inline-block', marginRight: 12 }}
+            onChange={handleBatchImport}
+            disabled={batchLoading}
+          />
+          {batchLoading && <CircularProgress size={20} sx={{ ml: 1, verticalAlign: 'middle' }} />}
+          {batchError && <Alert severity="error" sx={{ mt: 1 }}>{batchError}</Alert>}
+          {batchSuccess && <Alert severity="success" sx={{ mt: 1 }}>{batchSuccess}</Alert>}
+          <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+            Supported: Excel (.xlsx), CSV, or SQL (INSERT INTO inventory ...)
+          </Typography>
+        </Box>
         <Typography variant="h5" sx={{ mb: 3 }}>
           Add Inventory Item
         </Typography>
